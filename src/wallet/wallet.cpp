@@ -2803,7 +2803,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
             CTxOut change_prototype_txout(0, scriptChange);
             size_t change_prototype_size = GetSerializeSize(change_prototype_txout, SER_DISK, 0);
 
-            bool fNewFees = IsProtocolV07(txNew.nTime);
+            bool fNewFees = false;
             nFeeRet = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
             bool pick_new_inputs = true;
             CAmount nValueIn = 0;
@@ -4291,7 +4291,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     static unsigned int nStakeSplitAge = (60 * 60 * 24 * 90);
-    int64_t nCombineThreshold = GetProofOfWorkReward(GetLastBlockIndex(chainActive.Tip(), false)->nBits) / 3;
+    int64_t nCombineThreshold = GetProofOfWorkReward();
 
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
@@ -4458,11 +4458,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Calculate coin age reward
     {
         uint64_t nCoinAge;
+        int64_t nCoinAmount;
         CCoinsViewCache view(pcoinsTip.get());
-        if (!GetCoinAge(txNew, view, nCoinAge))
+        if (!GetCoinAge(txNew, view, nCoinAge, nCoinAmount))
             return error("CreateCoinStake : failed to calculate coin age");
 
-        CAmount nReward = GetProofOfStakeReward(nCoinAge);
+        CAmount nReward = GetProofOfStakeReward(nCoinAge, nCoinAmount);
         // Refuse to create mint that has zero or negative reward
         if(nReward <= 0) {
           return false;
@@ -4471,7 +4472,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     }
 
     CAmount nMinFee = 0;
-    CAmount nMinFeeBase = (IsProtocolV07(txNew.nTime) ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
+    CAmount nMinFeeBase = MIN_TX_FEE;
     while(true)
     {
         // Set output amount

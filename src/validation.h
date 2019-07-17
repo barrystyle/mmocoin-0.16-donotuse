@@ -75,7 +75,7 @@ static const int MAX_SCRIPTCHECK_THREADS = 16;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
 /** Number of blocks that can be requested at any given time from a single peer. */
-static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
+static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 64;
 /** Timeout in seconds during which a peer must stall block download progress before being disconnected. */
 static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
 /** Number of headers sent in one getheaders result. We rely on the assumption that if a peer sends
@@ -375,7 +375,21 @@ void InitScriptExecutionCache();
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 
-/** Functions for validating blocks and updating the block tree */
+/** Ladder functions/data **/
+static const int LADDER_LEVELS = 5;
+static const int64_t LADDER_THRESHOLDS[LADDER_LEVELS] = {
+		// yearly%
+    0,		// 1      
+    1000,	// 2      
+    10000,	// 5       
+    50000,	// 7      
+    100000	// 10     
+};
+static const int64_t LADDER_RATES[LADDER_LEVELS] = {
+    1, 2, 5, 7, 10
+};
+
+int64_t GetLadderReward(int64_t nCoinValue);
 
 /** Context-independent validity checks */
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
@@ -460,9 +474,10 @@ bool DumpMempool();
 bool LoadMempool();
 
 // peercoin:
-CAmount GetProofOfWorkReward(unsigned int nBits);
-CAmount GetProofOfStakeReward(int64_t nCoinAge);
-bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge); // peercoin: get transaction coin age
+int64_t GetProofOfWorkReward();
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue);
+int64_t GetLadderReward(int64_t nCoinValue);
+bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, int64_t& nCoinValue);
 bool SignBlock(CBlock& block, const CKeyStore& keystore);
 bool CheckBlockSignature(const CBlock& block);
 

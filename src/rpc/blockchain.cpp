@@ -1094,7 +1094,7 @@ static UniValue SoftForkMajorityDesc(int version, CBlockIndex* pindex, const Con
             activated = IsBTC16BIPsEnabled(pindex->nTime);
             break;
         case 4:
-            activated = IsProtocolV06(pindex);
+            activated = true;
             break;
     }
     rv.push_back(Pair("status", activated));

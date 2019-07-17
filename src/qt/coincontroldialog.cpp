@@ -421,7 +421,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     if (!model)
         return;
 
-    bool fNewFees = IsProtocolV07(GetAdjustedTime());
+    bool fNewFees = false;
     CAmount nMinFeeBase = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
 
     // nPayAmount

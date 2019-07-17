@@ -218,7 +218,7 @@ uint256 hashBestBlock;
 int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
-bool fTxIndex = false;
+bool fTxIndex = true;
 bool fHavePruned = false;
 bool fPruneMode = false;
 bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
@@ -922,46 +922,53 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
-int64_t GetProofOfWorkReward(unsigned int nBits)
+// miner's coin base reward
+int64_t GetProofOfWorkReward()
 {
-    CBigNum bnSubsidyLimit = MAX_MINT_PROOF_OF_WORK;
-    CBigNum bnTarget;
-    bnTarget.SetCompact(nBits);
-    CBigNum bnTargetLimit(Params().GetConsensus().powLimit);
-    bnTargetLimit.SetCompact(bnTargetLimit.GetCompact());
+     int64_t nSubsidy = 1 * COIN;
+     int nHeight = chainActive.Height() + 1;
 
-    // peercoin: subsidy is cut in half every 16x multiply of difficulty
-    // A reasonably continuous curve is used to avoid shock to market
-    // (nSubsidyLimit / nSubsidy) ** 4 == bnProofOfWorkLimit / bnTarget
-    CBigNum bnLowerBound = CENT;
-    CBigNum bnUpperBound = bnSubsidyLimit;
-    while (bnLowerBound + CENT <= bnUpperBound)
-    {
-        CBigNum bnMidValue = (bnLowerBound + bnUpperBound) / 2;
-        if (gArgs.GetBoolArg("-printcreation", false))
-            LogPrintf("%s: lower=%lld upper=%lld mid=%lld\n", __func__, bnLowerBound.getuint64(), bnUpperBound.getuint64(), bnMidValue.getuint64());
-        if (bnMidValue * bnMidValue * bnMidValue * bnMidValue * bnTargetLimit > bnSubsidyLimit * bnSubsidyLimit * bnSubsidyLimit * bnSubsidyLimit * bnTarget)
-            bnUpperBound = bnMidValue;
-        else
-            bnLowerBound = bnMidValue;
-    }
+     if (nHeight > 0 && nHeight < 1001)
+         nSubsidy = 100000 * COIN;
 
-    int64_t nSubsidy = bnUpperBound.getuint64();
-    nSubsidy = (nSubsidy / CENT) * CENT;
-    if (gArgs.GetBoolArg("-printcreation", false))
-        LogPrintf("%s: create=%s nBits=0x%08x nSubsidy=%lld\n", __func__, FormatMoney(nSubsidy), nBits, nSubsidy);
-
-    return std::min(nSubsidy, MAX_MINT_PROOF_OF_WORK);
+     return nSubsidy;
 }
 
-// peercoin: miner's coin stake is rewarded based on coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge)
+// miner's coin stake reward based on coin age spent (coin-days)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue)
 {
-    static int64_t nRewardCoinYear = CENT;  // creation amount per coin-year
+    int64_t nRewardCoinYear = GetLadderReward(nCoinValue);
     int64_t nSubsidy = nCoinAge * 33 / (365 * 33 + 8) * nRewardCoinYear;
+
     if (gArgs.GetBoolArg("-printcreation", false))
-        LogPrintf("%s: create=%s nCoinAge=%lld\n", __func__, FormatMoney(nSubsidy), nCoinAge);
+        printf("GetProofOfStakeReward(): LadderRung=%.1f create=%s nCoinAge=%jd nCoinValue=%s \n", (double)nRewardCoinYear/(double)CENT, FormatMoney(nSubsidy).c_str(), nCoinAge, FormatMoney(nCoinValue).c_str());
+
     return nSubsidy;
+}
+
+// determine which 'ladder' position we are in
+int64_t GetLadderReward(int64_t nCoinValue)
+{
+    // select correct % for 'ladder' bounds
+    if (nCoinValue >= LADDER_THRESHOLDS[LADDER_LEVELS-1] * COIN)
+        return LADDER_RATES[LADDER_LEVELS-1]  * CENT;
+    int nLevel = 0;
+    for (int i = 1; i<LADDER_LEVELS; i++){
+        if (nCoinValue < LADDER_THRESHOLDS[i] * COIN){
+                nLevel = i-1;
+                break;
+        };
+    };
+    int64_t nLevelRatePerSlice = (( LADDER_RATES[nLevel+1] - LADDER_RATES[nLevel] ) * CENT )  / 100;
+    int64_t nLevelValuePerSlice = (( LADDER_THRESHOLDS[nLevel+1] - LADDER_THRESHOLDS[nLevel] ) * COIN ) / 100;
+    int64_t nTestValue = LADDER_THRESHOLDS[nLevel] * COIN;
+    int64_t nRewardCoinYear = LADDER_RATES[nLevel] * CENT;
+    while (nTestValue < nCoinValue)
+    {
+        nTestValue += nLevelValuePerSlice;
+        nRewardCoinYear += nLevelRatePerSlice;
+    };
+    return nRewardCoinYear;
 }
 
 bool IsInitialBlockDownload()
@@ -1519,9 +1526,7 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
     }
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule
-    if (IsProtocolV06(pindex->pprev)) {
-        flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
-    }
+    flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
 
     // Start enforcing BIP68 (sequence locks) and BIP112 (CHECKSEQUENCEVERIFY)
     if (pindex->pprev && IsBTC16BIPsEnabled(pindex->pprev->nTime)) {
@@ -1811,7 +1816,14 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint(BCLog::BENCH, "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs (%.2fms/blk)]\n", (unsigned)block.vtx.size(), MILLI * (nTime3 - nTime2), MILLI * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
-    // peercoin: coinbase reward check relocated to CheckBlock()
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork() ? (GetProofOfWorkReward() + nFees) : 0))
+        return state.DoS(50, false, REJECT_INVALID, "bad-cb-amount", false,
+                strprintf("ConnectBlock() : coinbase reward exceeded %s > %s",
+                   FormatMoney(block.vtx[0]->GetValueOut()),
+                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward() + nFees : 0)));
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     if (!control.Wait())
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
@@ -2898,22 +2910,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), (int64_t)block.vtx[1]->nTime))
         return state.DoS(50, false, REJECT_INVALID, "bad-cs-time", false, "coinstake timestamp violation");
 
-    // Check coinbase reward
-    CAmount nCoinbaseCost = 0;
-    if (block.IsProofOfWork())
-        nCoinbaseCost = (GetMinFee(*block.vtx[0]) < PERKB_TX_FEE)? 0 : (GetMinFee(*block.vtx[0]) - PERKB_TX_FEE);
-    if (block.vtx[0]->GetValueOut() > (block.IsProofOfWork()? (GetProofOfWorkReward(block.nBits) - nCoinbaseCost) : 0))
-        return state.DoS(50, false, REJECT_INVALID, "bad-cb-amount", false,
-                strprintf("CheckBlock() : coinbase reward exceeded %s > %s",
-                   FormatMoney(block.vtx[0]->GetValueOut()),
-                   FormatMoney(block.IsProofOfWork()? GetProofOfWorkReward(block.nBits) : 0)));
+    /////////////////////////////////////////////////////////////////////////
+    // Peercoin are you high??! This should've be in connectblock, not here..
+    /////////////////////////////////////////////////////////////////////////
 
     // Check transactions
     for (const auto& tx : block.vtx)
     {
         if (!CheckTransaction(*tx, state, true))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
-                                 strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
+                                 strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetRejectReason()));
         // peercoin: check transaction timestamp
         if (block.GetBlockTime() < (int64_t)tx->nTime)
             return state.DoS(50, false, REJECT_INVALID, "bad-tx-time", false, strprintf("%s : block timestamp earlier than transaction timestamp", __func__));
@@ -3015,8 +3021,10 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, bool fProofOfS
 
     // Check proof of work or proof-of-stake
     const Consensus::Params& consensusParams = params.GetConsensus();
-    if (block.nBits != GetNextTargetRequired(pindexPrev, fProofOfStake, consensusParams))
+    if (block.nBits != GetNextTargetRequired(pindexPrev, fProofOfStake, consensusParams)) {
+        LogPrintf("we got %08x, expecting %08x\n", block.nBits, GetNextTargetRequired(pindexPrev, fProofOfStake, consensusParams));
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work/proof-of-stake");
+    }
 
     // Check against checkpoints
     if (fCheckpointsEnabled) {
@@ -3045,7 +3053,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, bool fProofOfS
 
     // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
     // check for version 2, 3 and 4 upgrades
-    if(block.nVersion < 2 && IsProtocolV06(pindexPrev))
+    if(block.nVersion < 2)
             return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
                                  strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
@@ -3080,7 +3088,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-    if (pindexPrev && IsProtocolV06(pindexPrev) && block.nVersion >= 2)
+    if (block.nVersion >= 2)
     {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
@@ -4672,10 +4680,11 @@ public:
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge)
+bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& nCoinAge, int64_t& nCoinValue)
 {
     arith_uint256 bnCentSecond = 0;  // coin age in the unit of cent-seconds
     nCoinAge = 0;
+    nCoinValue = 0;
 
     if (tx.IsCoinBase())
         return true;
@@ -4715,6 +4724,7 @@ bool GetCoinAge(const CTransaction& tx, const CCoinsViewCache &view, uint64_t& n
                 continue; // only count coins meeting min age requirement
 
             int64_t nValueIn = txPrev->vout[txin.prevout.n].nValue;
+            nCoinValue += nValueIn;
             bnCentSecond += arith_uint256(nValueIn) * (tx.nTime-txPrev->nTime) / CENT;
 
             if (gArgs.GetBoolArg("-printcoinage", false))
@@ -4761,15 +4771,19 @@ bool CheckBlockSignature(const CBlock& block)
     if (block.GetHash() == Params().GetConsensus().hashGenesisBlock)
         return block.vchBlockSig.empty();
 
+    if (block.IsProofOfWork())
+	return true;
+
     std::vector<valtype> vSolutions;
     txnouttype whichType;
-    const CTxOut& txout = block.IsProofOfStake()? block.vtx[1]->vout[1] : block.vtx[0]->vout[0];
+    const CTxOut& txout = block.vtx[1]->vout[1];
 
     if (!Solver(txout.scriptPubKey, whichType, vSolutions))
         return false;
+
     if (whichType == TX_PUBKEY)
     {
-        const valtype& vchPubKey = vSolutions[0];
+        valtype& vchPubKey = vSolutions[0];
         CPubKey key(vchPubKey);
         if (block.vchBlockSig.empty())
             return false;

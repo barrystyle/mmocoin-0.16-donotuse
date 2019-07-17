@@ -2391,14 +2391,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         }
 
-        if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-            nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-            if (Params().NetworkIDString() != "test") {
-                g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-                return error("too many consecutive pos headers");
-            }
-        }
-
         // When we succeed in decoding a block's txids from a cmpctblock
         // message we typically jump to the BLOCKTXN handling code, with a
         // dummy (empty) BLOCKTXN message, to re-use the logic there in
@@ -2672,7 +2664,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return error("headers message size = %u", nCount);
         }
         headers.resize(nCount);
-        {
+
         LOCK(cs_main);
         int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
         int nTmpPoSTemperature = nPoSTemperature;
@@ -2681,23 +2673,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
             ReadCompactSize(vRecv); // needed for vchBlockSig.
 
-            // peercoin: quick check to see if we should ban peers for PoS spam
-            // note: at this point we don't know if PoW headers are valid - we just assume they are
-            // so we need to update pfrom->nPoSTemperature once we actualy check them
-            bool fPoS = headers[n].nFlags & CBlockIndex::BLOCK_PROOF_OF_STAKE;
-            nTmpPoSTemperature += fPoS ? 1 : -POW_HEADER_COOLING;
-            // peer cannot cool himself by PoW headers from other branches
-            if (n == 0 && !fPoS && headers[n].hashPrevBlock != pfrom->lastAcceptedHeader)
-                nTmpPoSTemperature += POW_HEADER_COOLING;
-            nTmpPoSTemperature = std::max(nTmpPoSTemperature, 0);
-            if (nTmpPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                if (Params().NetworkIDString() != "test") {
-                    g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-                    return error("too many consecutive pos headers");
-                }
-            }
-        }
         }
 
         // Headers received via a HEADERS message should be valid, and reflect
@@ -2726,24 +2701,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 return error("previous header not found");
             }
 
-            if (!fRequested) {
-                int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-                if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                    nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                    if (Params().NetworkIDString() != "test") {
-                        g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-                        return error("too many consecutive pos headers");
-                    }
-                }
-
-                if (pblock2->IsProofOfStake() && !IsInitialBlockDownload())
-                    nPoSTemperature += 1;
-
-                if (!miPrev->second->IsValid(BLOCK_VALID_TRANSACTIONS)) {
-                    MarkBlockAsReceived(hash2);
-                    return error("this block does not connect to any valid known blocks");
-                }
-            }
             // peercoin: store in memory until we can connect it to some chain
             WaitElement we; we.pblock = pblock2; we.time = nTimeNow;
             mapBlocksWait[miPrev->second] = we;
