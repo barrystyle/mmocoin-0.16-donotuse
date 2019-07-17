@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 The Peercoin developers
+// Copyright (c) 2012-2019 The MMOCoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -303,7 +303,7 @@ static bool GetKernelStakeModifier(CBlockIndex* pindexPrev, uint256 hashBlockFro
         return GetKernelStakeModifierV03(pindexPrev, hashBlockFrom, nStakeModifier, nStakeModifierHeight, nStakeModifierTime, fPrintProofOfStake);
 }
 
-// peercoin kernel protocol
+// mmocoin kernel protocol
 // coinstake must meet hash target according to the protocol:
 // kernel (input 0) must meet the formula
 //     hash(nStakeModifier + txPrev.block.nTime + txPrev.offset + txPrev.nTime + txPrev.vout.n + nTime) < bnTarget * nCoinDayWeight
@@ -478,7 +478,7 @@ bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRe
     return (nFound >= nRequired);
 }
 
-// peercoin: entropy bit for stake modifier if chosen by modifier
+// mmocoin: entropy bit for stake modifier if chosen by modifier
 unsigned int GetStakeEntropyBit(const CBlock& block)
 {
     unsigned int nEntropyBit = 0;

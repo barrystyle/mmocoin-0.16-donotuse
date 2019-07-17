@@ -1,39 +1,39 @@
-Peercoin 0.8.0 BETA
+MMOCoin 0.8.0 BETA
 
 Setup
 ---------------------
-Peercoin Core is the original Peercoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Peercoin transactions (which is currently more than 100 GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+MMOCoin Core is the original MMOCoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of MMOCoin transactions (which is currently more than 100 GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
-To download Peercoin Core, visit [peercoin.net](https://peercoin.net/download).
+To download MMOCoin Core, visit [mmocoin.net](https://mmocoin.net/download).
 
 Running
 ---------------------
-The following are some helpful notes on how to run Peercoin on your native platform.
+The following are some helpful notes on how to run MMOCoin on your native platform.
 
 ### Unix
 
 Unpack the files into a directory and run:
 
-- `bin/peercoin-qt` (GUI) or
-- `bin/peercoind` (headless)
+- `bin/mmocoin-qt` (GUI) or
+- `bin/mmocoind` (headless)
 
 ### Windows
 
-Unpack the files into a directory, and then run peercoin-qt.exe.
+Unpack the files into a directory, and then run mmocoin-qt.exe.
 
 ### OS X
 
-Drag Peercoin-Core to your applications folder, and then run Peercoin-Core.
+Drag MMOCoin-Core to your applications folder, and then run MMOCoin-Core.
 
 ### Need Help?
 
 * See the documentation at the [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
-for help and more information. Peercoin is very similar to bitcoin, so you can use their wiki.
-* Ask for help on [#general](https://peercoin.chat/) on peercoin.chat.
+for help and more information. MMOCoin is very similar to bitcoin, so you can use their wiki.
+* Ask for help on [#general](https://mmocoin.chat/) on mmocoin.chat.
 
 Building
 ---------------------
-The following are developer notes on how to build Peercoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+The following are developer notes on how to build MMOCoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [Dependencies](dependencies.md)
 - [OS X Build Notes](build-osx.md)
@@ -44,7 +44,7 @@ The following are developer notes on how to build Peercoin on your native platfo
 
 Development
 ---------------------
-The Peercoin repo's [root README](/README.md) contains relevant information on the development process and automated testing.
+The MMOCoin repo's [root README](/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
 - [Release Notes](release-notes.md)
@@ -60,7 +60,7 @@ The Peercoin repo's [root README](/README.md) contains relevant information on t
 - [Benchmarking](benchmarking.md)
 
 ### Resources
-* TODO: add some peercoin resourses
+* TODO: add some mmocoin resourses
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)

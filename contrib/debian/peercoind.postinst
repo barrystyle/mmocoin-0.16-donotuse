@@ -4,21 +4,21 @@
 # see: dh_installdeb(1)
 
 conf() {
-	echo "Configuring .peercoin directory for each user..."
+	echo "Configuring .mmocoin directory for each user..."
 	for _HOME in /home/*?; do
 		# Obtain the username
 		USER=$( basename ${_HOME} )
 
-		if [ ! -d "$_HOME/.peercoin" ]; then
-			echo "Peercoin directory not found for user $USER! Creating one now."
-			mkdir $_HOME/.peercoin
+		if [ ! -d "$_HOME/.mmocoin" ]; then
+			echo "MMOCoin directory not found for user $USER! Creating one now."
+			mkdir $_HOME/.mmocoin
 		fi
 
-		if [ ! -f $_HOME/.peercoin/peercoin.conf ]; then
-			echo "Peercoin configuration file not found for user $USER! Creating one now."
-			echo -e "rpcuser=rpcuser\nrpcpassword=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c10)" > $_HOME/.peercoin/peercoin.conf
+		if [ ! -f $_HOME/.mmocoin/mmocoin.conf ]; then
+			echo "MMOCoin configuration file not found for user $USER! Creating one now."
+			echo -e "rpcuser=rpcuser\nrpcpassword=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c10)" > $_HOME/.mmocoin/mmocoin.conf
 		fi
-		chown -R $USER: $_HOME/.peercoin
+		chown -R $USER: $_HOME/.mmocoin
 	done
 }
 

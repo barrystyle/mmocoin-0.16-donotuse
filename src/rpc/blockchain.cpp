@@ -993,8 +993,8 @@ UniValue gettxout(const JSONRPCRequest& request)
             "     \"hex\" : \"hex\",        (string) \n"
             "     \"reqSigs\" : n,          (numeric) Number of required signatures\n"
             "     \"type\" : \"pubkeyhash\", (string) The type, eg pubkeyhash\n"
-            "     \"addresses\" : [          (array of string) array of peercoin addresses\n"
-            "        \"address\"     (string) peercoin address\n"
+            "     \"addresses\" : [          (array of string) array of mmocoin addresses\n"
+            "        \"address\"     (string) mmocoin address\n"
             "        ,...\n"
             "     ]\n"
             "  },\n"
@@ -1573,7 +1573,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getrawmempool",          &getrawmempool,          {"verbose"} },
     { "blockchain",         "gettxout",               &gettxout,               {"txid","n","include_mempool"} },
     { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        {} },
-    // peercoin: disabled until prune is correctly implemented
+    // mmocoin: disabled until prune is correctly implemented
 //    { "blockchain",         "pruneblockchain",        &pruneblockchain,        {"height"} },
     { "blockchain",         "savemempool",            &savemempool,            {} },
     { "blockchain",         "verifychain",            &verifychain,            {"checklevel","nblocks"} },

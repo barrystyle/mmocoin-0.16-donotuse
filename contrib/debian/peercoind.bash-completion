@@ -1,3 +1,3 @@
-contrib/peercoind.bash-completion	peercoind
-contrib/peercoin-cli.bash-completion	peercoin-cli
-contrib/peercoin-tx.bash-completion	peercoin-tx
+contrib/mmocoind.bash-completion	mmocoind
+contrib/mmocoin-cli.bash-completion	mmocoin-cli
+contrib/mmocoin-tx.bash-completion	mmocoin-tx

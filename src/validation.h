@@ -123,7 +123,7 @@ static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 /** Default for -permitbaremultisig */
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
-static const bool DEFAULT_TXINDEX = true;  // peercoin: txindex is required for PoS calculations (might change in the future)
+static const bool DEFAULT_TXINDEX = true;  // mmocoin: txindex is required for PoS calculations (might change in the future)
 static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 /** Default for -persistmempool */
 static const bool DEFAULT_PERSIST_MEMPOOL = true;
@@ -473,7 +473,7 @@ bool DumpMempool();
 /** Load the mempool from disk. */
 bool LoadMempool();
 
-// peercoin:
+// mmocoin:
 int64_t GetProofOfWorkReward();
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nCoinValue);
 int64_t GetLadderReward(int64_t nCoinValue);

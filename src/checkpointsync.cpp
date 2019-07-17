@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 The Peercoin developers
+// Copyright (c) 2012-2019 The MMOCoin developers
 // Distributed under conditional MIT/X11 software license,
 // see the accompanying file COPYING
 //
@@ -69,7 +69,7 @@ const std::string CSyncCheckpoint::strTestPubKey = "046cad3d8254b182a4e5289d01d1
 std::string CSyncCheckpoint::strMasterPrivKey = "";
 
 
-// peercoin: synchronized checkpoint (centrally broadcasted)
+// mmocoin: synchronized checkpoint (centrally broadcasted)
 uint256 hashSyncCheckpoint = uint256();
 uint256 hashPendingCheckpoint = uint256();
 CSyncCheckpoint checkpointMessage;
@@ -78,7 +78,7 @@ uint256 hashInvalidCheckpoint = uint256();
 CCriticalSection cs_hashSyncCheckpoint;
 std::string strCheckpointWarning;
 
-// peercoin: get last synchronized checkpoint
+// mmocoin: get last synchronized checkpoint
 CBlockIndex* GetLastSyncCheckpoint()
 {
     LOCK(cs_hashSyncCheckpoint);
@@ -89,7 +89,7 @@ CBlockIndex* GetLastSyncCheckpoint()
     return NULL;
 }
 
-// peercoin: only descendant of current sync-checkpoint is allowed
+// mmocoin: only descendant of current sync-checkpoint is allowed
 bool ValidateSyncCheckpoint(uint256 hashCheckpoint)
 {
     if (!mapBlockIndex.count(hashSyncCheckpoint))
@@ -239,7 +239,7 @@ bool CheckSyncCheckpoint(const uint256& hashBlock, const CBlockIndex* pindexPrev
 //    return true;
 }
 
-// peercoin: reset synchronized checkpoint to last hardened checkpoint
+// mmocoin: reset synchronized checkpoint to last hardened checkpoint
 bool ResetSyncCheckpoint()
 {
     LOCK(cs_hashSyncCheckpoint);
@@ -364,7 +364,7 @@ bool IsSyncCheckpointTooOld(unsigned int nSeconds)
     return (pindexSync->GetBlockTime() + nSeconds < GetAdjustedTime());
 }
 
-// peercoin: verify signature of sync-checkpoint message
+// mmocoin: verify signature of sync-checkpoint message
 bool CSyncCheckpoint::CheckSignature()
 {
     std::string strMasterPubKey = Params().NetworkIDString() == CBaseChainParams::TESTNET ? CSyncCheckpoint::strTestPubKey : CSyncCheckpoint::strMainPubKey;
@@ -378,7 +378,7 @@ bool CSyncCheckpoint::CheckSignature()
     return true;
 }
 
-// peercoin: process synchronized checkpoint
+// mmocoin: process synchronized checkpoint
 bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
 {
     if (!CheckSignature())

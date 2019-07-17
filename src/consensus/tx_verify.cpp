@@ -231,7 +231,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
         }
 
-        // peercoin: check transaction timestamp
+        // mmocoin: check transaction timestamp
         if (coin.nTime > tx.nTime)
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-spent-too-early", false, strprintf("%s : transaction timestamp earlier than input transaction", __func__));
 
@@ -244,7 +244,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
     if (tx.IsCoinStake())
     {
-        // peercoin: coin stake tx earns reward instead of paying fee
+        // mmocoin: coin stake tx earns reward instead of paying fee
         uint64_t nCoinAge;
         int64_t nCoinValue;
         if (!GetCoinAge(tx, inputs, nCoinAge, nCoinValue))
@@ -266,7 +266,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         if (!MoneyRange(txfee_aux)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
         }
-        // peercoin: enforce transaction fees for every block
+        // mmocoin: enforce transaction fees for every block
         if (txfee_aux < GetMinFee(tx))
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-not-enough");
         txfee = txfee_aux;

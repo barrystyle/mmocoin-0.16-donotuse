@@ -200,9 +200,9 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("tseed.peercoin.net");
-        vSeeds.emplace_back("tseed2.peercoin.net");
-        vSeeds.emplace_back("tseed.peercoin-library.org");
+        vSeeds.emplace_back("tseed.mmocoin.net");
+        vSeeds.emplace_back("tseed2.mmocoin.net");
+        vSeeds.emplace_back("tseed.mmocoin-library.org");
         vSeeds.emplace_back("testseed.ppcoin.info");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);

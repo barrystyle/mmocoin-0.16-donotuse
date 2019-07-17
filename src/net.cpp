@@ -88,7 +88,7 @@ std::string strSubVersion;
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
-// peercoin: temperature to measure how many PoS headers have been sent by this client
+// mmocoin: temperature to measure how many PoS headers have been sent by this client
 std::map<CNetAddr, int32_t> mapPoSTemperature;
 
 void CConnman::AddOneShot(const std::string& strDest)
@@ -1511,7 +1511,7 @@ void ThreadMapPort()
             }
         }
 
-        std::string strDesc = "Peercoin " + FormatFullVersion();
+        std::string strDesc = "MMOCoin " + FormatFullVersion();
 
         try {
             while (true) {

@@ -1,6 +1,6 @@
 [Protocol]
-exec=peercoin-qt '%u'
-protocol=peercoin
+exec=mmocoin-qt '%u'
+protocol=mmocoin
 input=none
 output=none
 helper=true

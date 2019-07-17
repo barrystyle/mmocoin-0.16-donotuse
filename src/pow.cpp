@@ -13,7 +13,7 @@
 #include <bignum.h>
 #include <chainparams.h>
 
-// peercoin: find last block index up to pindex
+// mmocoin: find last block index up to pindex
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
 {
     while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
@@ -40,8 +40,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (nActualSpacing < 0)
         nActualSpacing = params.nStakeTargetSpacing;
 
-    // peercoin: target change every block
-    // peercoin: retarget with exponential moving toward target spacing
+    // mmocoin: target change every block
+    // mmocoin: retarget with exponential moving toward target spacing
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
     int64_t nInterval = params.nTargetTimespan / params.nStakeTargetSpacing;
