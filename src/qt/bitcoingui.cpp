@@ -234,7 +234,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
     progressBar = new GUIUtil::ProgressBar();
     progressBar->setAlignment(Qt::AlignCenter);
     progressBar->setVisible(false);
-    progressBar->setStyleSheet("QProgressBar { background-color: #8C8C8C; text-align: center; color: white; border: 1px solid #4b4b4b; } QProgressBar::chunk { background: #3cb054; margin: 0px; }");
+    progressBar->setStyleSheet("QProgressBar { background-color: #8C8C8C; text-align: center; color: white; border: 1px solid #4b4b4b; } QProgressBar::chunk { background: #45a71e; margin: 0px; }");
 
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
@@ -409,7 +409,7 @@ void BitcoinGUI::createActions()
     openChatroomAction->setStatusTip(tr("Open the MMOCoin Discord in a web browser."));
 
     openForumAction = new QAction(QIcon(":/icons/mmocoin"), tr("&Forum"), this);
-    openForumAction->setStatusTip(tr("Open https://talk.mmocoin.net in a web browser."));
+    openForumAction->setStatusTip(tr("Open https://www.mmopro.org in a web browser."));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -778,7 +778,7 @@ void BitcoinGUI::openChatroom() {
 }
 
 void BitcoinGUI::openForum() {
-    QDesktopServices::openUrl(QUrl("https://talk.mmocoin.net"));
+    QDesktopServices::openUrl(QUrl("https://talk.mmocoin.pro"));
 }
 
 #endif // ENABLE_WALLET

@@ -51,7 +51,7 @@ static const int MAX_URI_LENGTH = 255;
 #define SPINNER_FRAMES 36
 
 #define QAPP_ORG_NAME "MMOCoin"
-#define QAPP_ORG_DOMAIN "mmocoin.net"
+#define QAPP_ORG_DOMAIN "mmocoin.pro"
 #define QAPP_APP_NAME_DEFAULT "MMOCoin-Qt"
 #define QAPP_APP_NAME_TESTNET "MMOCoin-Qt-testnet"
 

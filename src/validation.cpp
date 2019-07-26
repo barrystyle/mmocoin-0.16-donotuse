@@ -2516,7 +2516,7 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
         if (ShutdownRequested())
             break;
     } while (pindexNewTip != pindexMostWork);
-    CheckBlockIndex(chainparams.GetConsensus());
+    // CheckBlockIndex(chainparams.GetConsensus());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(chainparams, state, FLUSH_STATE_PERIODIC)) {
@@ -3212,7 +3212,7 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfStak
     if (ppindex)
         *ppindex = pindex;
 
-    CheckBlockIndex(chainparams.GetConsensus());
+    // CheckBlockIndex(chainparams.GetConsensus());
 
     //ppcTODO - move this somewhere in the upper calls, where pfrom is visible
 //    // mmocoin: ask for pending sync-checkpoint if any
@@ -3361,7 +3361,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     if (fCheckForPruning)
         FlushStateToDisk(chainparams, state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
 
-    CheckBlockIndex(chainparams.GetConsensus());
+    // CheckBlockIndex(chainparams.GetConsensus());
 
 #ifdef ENABLE_CHECKPOINTS
     // mmocoin: check pending sync-checkpoint
@@ -4087,7 +4087,7 @@ bool CChainState::RewindBlockIndex(const CChainParams& params)
         // no tip due to chainActive being empty!
         PruneBlockIndexCandidates();
 
-        CheckBlockIndex(params.GetConsensus());
+        // CheckBlockIndex(params.GetConsensus());
     }
 
     return true;

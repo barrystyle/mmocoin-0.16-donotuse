@@ -510,7 +510,7 @@ std::string HelpMessage(HelpMessageMode mode)
 std::string LicenseInfo()
 {
     const std::string URL_SOURCE_CODE = "<https://github.com/mmocoin/mmocoin>";
-    const std::string URL_WEBSITE = "<https://mmocoin.net/>";
+    const std::string URL_WEBSITE = "<https://mmocoin.pro/>";
 
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +
