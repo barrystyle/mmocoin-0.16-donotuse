@@ -774,11 +774,11 @@ void BitcoinGUI::gotoVerifyMessageTab(QString addr)
 }
 
 void BitcoinGUI::openChatroom() {
-    QDesktopServices::openUrl(QUrl("https://discord.gg/XPxfwtG"));
+    QDesktopServices::openUrl(QUrl("https://discord.gg/MVh5AR8"));
 }
 
 void BitcoinGUI::openForum() {
-    QDesktopServices::openUrl(QUrl("https://talk.mmocoin.pro"));
+    QDesktopServices::openUrl(QUrl("https://www.mmopro.org"));
 }
 
 #endif // ENABLE_WALLET

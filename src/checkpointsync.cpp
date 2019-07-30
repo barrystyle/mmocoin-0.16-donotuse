@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 The MMOCoin developers
+// Copyright (c) 2018-2019 The MMOCoin developers
 // Distributed under conditional MIT/X11 software license,
 // see the accompanying file COPYING
 //
