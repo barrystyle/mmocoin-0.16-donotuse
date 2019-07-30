@@ -27,7 +27,7 @@ Build-Depends: debhelper,
 Standards-Version: 3.9.2
 Homepage: https://www.mmocoin.net/
 Vcs-Git: git://github.com/mmocoin/mmocoin.git
-Vcs-Browser: https://github.com/mmocoin/mmocoin
+Vcs-Browser: https://github.com/MMO-Coin/mmocoin
 
 Package: mmocoind
 Architecture: any

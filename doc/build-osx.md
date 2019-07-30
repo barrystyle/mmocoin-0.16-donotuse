@@ -45,7 +45,7 @@ Build MMOCoin Core
 
 1. Clone the mmocoin source code and cd into `mmocoin`
 
-        git clone https://github.com/mmocoin/mmocoin.git
+        git clone https://github.com/MMO-Coin/mmocoin.git
         cd mmocoin
 
 2.  Build mmocoin-core:
