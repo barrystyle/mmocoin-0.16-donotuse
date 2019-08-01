@@ -41,8 +41,8 @@ QString BitcoinUnits::longName(int unit)
     switch(unit)
     {
     case BTC: return QString("MMO");
-    case mBTC: return QString("mPPC");
-    case uBTC: return QString::fromUtf8("μPPC");
+    case mBTC: return QString("mMMO");
+    case uBTC: return QString::fromUtf8("μMMO");
     default: return QString("???");
     }
 }
@@ -60,9 +60,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("Peercoins");
-    case mBTC: return QString("Milli-Peercoins (1 / 1" THIN_SP_UTF8 "000)");
-    case uBTC: return QString("Micro-Peercoins (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+    case BTC: return QString("mmocoins");
+    case mBTC: return QString("Milli-mmocoins (1 / 1" THIN_SP_UTF8 "000)");
+    case uBTC: return QString("Micro-mmocoins (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     default: return QString("???");
     }
 }
@@ -71,10 +71,10 @@ qint64 BitcoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case BTC:  return 1000000;
-    case mBTC: return 1000;
-    case uBTC: return 1;
-    default:   return 1000000;
+    case BTC:  return 100000000;
+    case mBTC: return 100000;
+    case uBTC: return 100;
+    default:   return 100000000;
     }
 }
 
@@ -82,9 +82,9 @@ int BitcoinUnits::decimals(int unit)
 {
     switch(unit)
     {
-    case BTC: return 6;
-    case mBTC: return 3;
-    case uBTC: return 0;
+    case BTC: return 8;
+    case mBTC: return 11;
+    case uBTC: return 14;
     default: return 0;
     }
 }
