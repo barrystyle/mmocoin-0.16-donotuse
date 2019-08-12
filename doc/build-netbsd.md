@@ -25,7 +25,7 @@ python27
 
 Download the source code:
 ```
-git clone https://github.com/MMO-Coin/mmocoin
+git clone https://github.com/MMO-Coin/mmocoin.git
 ```
 
 See [dependencies.md](dependencies.md) for a complete overview.
