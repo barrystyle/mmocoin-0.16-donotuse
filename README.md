@@ -2,7 +2,7 @@
   <img src="https://image.ibb.co/mWpAzn/mmopro_avatar.png">
 </p>
 
-## MMOCoin (rebased over Peercoin 0.16)
+## MMOCoin (Fork of PeerCoin rebased over Bitcoin Core 0.16)
 
 
 ### Block Info
