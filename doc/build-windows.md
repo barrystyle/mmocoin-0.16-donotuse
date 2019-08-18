@@ -73,7 +73,7 @@ If you want to build the windows installer with `make deploy` you need [NSIS](ht
 
 Acquire the source in the usual way:
 
-    git clone https://github.com/MMO-Coin/mmocoin.git
+    sudo git clone https://github.com/MMO-Coin/mmocoin.git
     cd mmocoin
 
 ## Building for 64-bit Windows
@@ -96,11 +96,11 @@ Build using:
 
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
     cd depends
-    make HOST=x86_64-w64-mingw32
+    sudo make HOST=x86_64-w64-mingw32
     cd ..
     ./autogen.sh # not required when building from tarball
     CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
-    make
+    sudo make
 
 ## Depends system
 
@@ -114,11 +114,11 @@ executables to a directory on the Windows drive in the same directory structure
 as they appear in the release `.zip` archive. This can be done in the following
 way. This will install to `c:\workspace\mmocoin`, for example:
 
-    make install DESTDIR=/mnt/c/workspace/mmocoin
+    sudo make install DESTDIR=/mnt/c/workspace/mmocoin
 
 You can also create an installer using:
 
-    make deploy
+    sudo make deploy
 
 Footnotes
 ---------
