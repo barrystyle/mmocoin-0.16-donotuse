@@ -1,4 +1,4 @@
-MMOCoin 0.8.0 BETA
+MMOCoin 0.8.1 BETA
 
 Setup
 ---------------------
