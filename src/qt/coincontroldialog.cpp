@@ -422,7 +422,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         return;
 
     bool fNewFees = false;
-    //CAmount nMinFeeBase = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
+    //CAmount nMinFeeBase = MIN_TX_FEE;
 
     // nPayAmount
     CAmount nPayAmount = 0;
@@ -452,7 +452,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     coinControl()->ListSelected(vCoinControl);
     model->getOutputs(vCoinControl, vOutputs);
 
-    nPayFee = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
+    nPayFee = MIN_TX_FEE;
     for (const COutput& out : vOutputs) {
         // unselect already spent, very unlikely scenario, this could happen
         // when selected are spent elsewhere, like rpc or another computer
