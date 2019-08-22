@@ -169,8 +169,7 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
         }
 
         // mmocoin: sign block
-        // rfc6: we sign proof of work blocks only before 0.8 fork
-        if (!IsBTC16BIPsEnabled(pblock->GetBlockTime()) && !SignBlock(*pblock, *pwallet))
+        if (!SignBlock(*pblock, *pwallet))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
@@ -566,8 +565,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     UpdateTime(pblock);
     pblock->nNonce = 0;
 
-    // NOTE: If at some point we support pre-segwit miners post-segwit-activation, this needs to take segwit support into consideration
-    const bool fPreSegWit = !IsBTC16BIPsEnabled(chainActive.Tip()->nTime);
+    const bool fPreSegWit = true;
 
     UniValue aCaps(UniValue::VARR); aCaps.push_back("proposal");
 
@@ -743,8 +741,7 @@ UniValue submitblock(const JSONRPCRequest& request)
         }
 
     // mmocoin: sign block
-    // rfc6: sign proof of stake blocks only after 0.8 fork
-    if ((block.IsProofOfStake() || !IsBTC16BIPsEnabled(block.GetBlockTime())) && !SignBlock(block, *pwallet))
+    if (block.IsProofOfStake() && !SignBlock(block, *pwallet))
         throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
     {

@@ -18,10 +18,6 @@
 
 using namespace std;
 
-// Switch time for new BIPs from bitcoin 0.16.x
-const uint32_t nBTC16BIPsSwitchTime = 1569931200; // Tue 01 Oct 12:00:00 UTC 2019
-const uint32_t nBTC16BIPsTestSwitchTime = 1554811200; // Tue 09 Apr 12:00:00 UTC 2019
-
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
@@ -33,10 +29,10 @@ static std::map<int, unsigned int> mapStakeModifierTestnetCheckpoints =
     ( 0, 0x0e00670bu )
     ;
 
-bool IsBTC16BIPsEnabled(uint32_t nTimeTx)
+// Get time weight
+int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd)
 {
-    bool fTestNet = Params().NetworkIDString() != CBaseChainParams::MAIN;
-    return (nTimeTx >= (fTestNet? nBTC16BIPsTestSwitchTime : nBTC16BIPsSwitchTime));
+    return min(nIntervalEnd - nIntervalBeginning - Params().GetConsensus().nStakeMinAge, (int64_t)Params().GetConsensus().nStakeMaxAge);
 }
 
 // Get the last stake modifier and its generation time from a given block
