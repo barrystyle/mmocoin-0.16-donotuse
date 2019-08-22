@@ -16,6 +16,7 @@
 #include <wallet/init.h>
 #include <key.h>
 #include <keystore.h>
+#include <kernel.h>
 #include <validation.h>
 #include <net.h>
 #include <policy/policy.h>
@@ -42,13 +43,17 @@
 std::vector<CWalletRef> vpwallets;
 unsigned int nTxConfirmTarget = DEFAULT_TX_CONFIRM_TARGET;
 bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
-OutputType g_address_type = OUTPUT_TYPE_NONE;
-OutputType g_change_type = OUTPUT_TYPE_NONE;
+OutputType g_address_type = OUTPUT_TYPE_LEGACY;
+OutputType g_change_type = OUTPUT_TYPE_LEGACY;
 
 const char * DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 const uint256 CMerkleTx::ABANDON_HASH(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
+
+// https://github.com/barrystyle/mmocoin/blob/master/src/wallet.cpp (lines 18-19)
+unsigned int nStakeSplitAge = 1 * 24 * 60 * 60;
+int64_t nCombineThreshold = 1000 * COIN;
 
 // mmocoin: optional setting to unlock wallet for block minting only;
 //         serves to disable the trivial sendmoney when OS account compromised
@@ -2810,8 +2815,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
             CTxOut change_prototype_txout(0, scriptChange);
             size_t change_prototype_size = GetSerializeSize(change_prototype_txout, SER_DISK, 0);
 
-            bool fNewFees = false;
-            nFeeRet = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
+            nFeeRet = MIN_TX_FEE;
             bool pick_new_inputs = true;
             CAmount nValueIn = 0;
             // Start with no fee and loop until there is enough fee
@@ -2857,19 +2861,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                 }
 
                 CAmount nChange = nValueIn - nValueToSelect;
-
-//ppcTODO: this code was in 0.7:
-//                  CAmount nMinFeeBase = (fNewFees ? MIN_TX_FEE : MIN_TX_FEE_PREV7);
-//                // The following if statement should be removed once enough miners
-//                // have upgraded to the 0.9 GetMinFee() rules. Until then, this avoids
-//                // creating free transactions that have change outputs less than
-//                // CENT bitcoins.
-//                if (nFeeRet < CTransaction::nMinTxFee && nChange > 0 && nChange < nMinFeeBase)
-//                {
-//                    CAmount nMoveToFee = min(nChange, CTransaction::nMinTxFee - nFeeRet);
-//                    nChange -= nMoveToFee;
-//                    nFeeRet += nMoveToFee;
-//                }
 
                 // mmocoin: sub-cent change is moved to fee
                 if (nChange > 0 && nChange < MIN_TXOUT_AMOUNT)
@@ -4295,11 +4286,6 @@ CTxDestination CWallet::AddAndGetDestinationForScript(const CScript& script, Out
 typedef std::vector<unsigned char> valtype;
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew)
 {
-    // The following split & combine thresholds are important to security
-    // Should not be adjusted if you don't understand the consequences
-    static unsigned int nStakeSplitAge = (60 * 60 * 24 * 90);
-    int64_t nCombineThreshold = GetProofOfWorkReward();
-
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
@@ -4478,45 +4464,27 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         nCredit += nReward;
     }
 
-    CAmount nMinFee = 0;
-    CAmount nMinFeeBase = MIN_TX_FEE;
-    while(true)
+    // Set output amount
+    if (txNew.vout.size() == 3)
     {
-        // Set output amount
-        if (txNew.vout.size() == 3)
-        {
-            txNew.vout[1].nValue = ((nCredit - nMinFee) / 2 / nMinFeeBase) * nMinFeeBase;
-            txNew.vout[2].nValue = nCredit - nMinFee - txNew.vout[1].nValue;
-        }
-        else
-            txNew.vout[1].nValue = nCredit - nMinFee;
-
-        // Sign
-        int nIn = 0;
-        for (const auto& pcoin : vwtxPrev)
-        {
-            if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL))
-                return error("CreateCoinStake : failed to sign coinstake");
-        }
-
-        // Limit size
-        unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
-        if (nBytes >= 1000000/5)
-            return error("CreateCoinStake : exceeded coinstake size limit");
-
-        // Check enough fee is paid
-        if (nMinFee < GetMinFee(txNew) - nMinFeeBase)
-        {
-            nMinFee = GetMinFee(txNew) - nMinFeeBase;
-            continue; // try signing again
-        }
-        else
-        {
-            if (gArgs.GetBoolArg("-debug", false) && gArgs.GetBoolArg("-printfee", false))
-                LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney(nMinFee).c_str());
-            break;
-        }
+        txNew.vout[1].nValue = (nCredit / 2 / CENT) * CENT;
+        txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
     }
+    else
+        txNew.vout[1].nValue = nCredit;
+
+    // Sign
+    int nIn = 0;
+    for (const auto& pcoin : vwtxPrev)
+    {
+        if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL))
+            return error("CreateCoinStake : failed to sign coinstake");
+    }
+
+    // Limit size
+    unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
+    if (nBytes >= 1000000/5)
+        return error("CreateCoinStake : exceeded coinstake size limit");
 
     // Successfully generated coinstake
     return true;
