@@ -29,7 +29,7 @@ static const std::string CURRENCY_UNIT = "MMO";
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  * */
-static const CAmount MAX_MONEY = 26000000 * COIN;
+static const CAmount MAX_MONEY = 260000000 * COIN;
 inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 
 #endif //  BITCOIN_AMOUNT_H
