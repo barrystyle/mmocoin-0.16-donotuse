@@ -858,9 +858,7 @@ static uint256 most_recent_block_hash;
 static bool fWitnessesPresentInMostRecentCompactBlock;
 
 void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& pblock) {
-    std::shared_ptr<CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<CBlockHeaderAndShortTxIDs> (*pblock, true);
-    pcmpctblock->header.nFlags = pindex->nFlags;
-
+    std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, true);
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
 
     LOCK(cs_main);
@@ -1717,20 +1715,11 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             connman->MarkAddressGood(pfrom->addr);
         }
 
-#ifdef ENABLE_CHECKPOINTS
         // mmocoin: relay sync-checkpoint
         {
             LOCK(cs_main);
             if (!checkpointMessage.IsNull())
                 checkpointMessage.RelayTo(pfrom);
-        }
-#endif
-
-        // mmocoin: relay alerts
-        {
-            LOCK(cs_mapAlerts);
-            for (auto& item : mapAlerts)
-                item.second.RelayTo(pfrom);
         }
 
         std::string remoteAddr;
@@ -1758,11 +1747,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             pfrom->fDisconnect = true;
         }
 
-#ifdef ENABLE_CHECKPOINTS
         // mmocoin: ask for pending sync-checkpoint if any
         if (!IsInitialBlockDownload())
             AskForPendingSyncCheckpoint(pfrom);
-#endif
 
         return true;
     }
@@ -1950,8 +1937,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     // fell back to inv we probably have a reorg which we should get the headers for first,
                     // we now only provide a getheaders response here. When we receive the headers, we will
                     // then ask for the blocks we need.
-                    //connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexBestHeader), inv.hash));
-                    //LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n", pindexBestHeader->nHeight, inv.hash.ToString(), pfrom->GetId());
+                    connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexBestHeader), inv.hash));
+                    LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n", pindexBestHeader->nHeight, inv.hash.ToString(), pfrom->GetId());
                 }
             }
             else
@@ -2668,13 +2655,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         headers.resize(nCount);
 
         LOCK(cs_main);
-        int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-        int nTmpPoSTemperature = nPoSTemperature;
         for (unsigned int n = 0; n < nCount; n++) {
             vRecv >> headers[n];
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
             ReadCompactSize(vRecv); // needed for vchBlockSig.
-
         }
 
         // Headers received via a HEADERS message should be valid, and reflect
@@ -2703,7 +2687,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 return error("previous header not found");
             }
 
-            // mmocoin: store in memory until we can connect it to some chain
+            if (!fRequested) {
+
+                if (!miPrev->second->IsValid(BLOCK_VALID_TRANSACTIONS)) {
+                    MarkBlockAsReceived(hash2);
+                    return error("this block does not connect to any valid known blocks");
+                }
+            }
             WaitElement we; we.pblock = pblock2; we.time = nTimeNow;
             mapBlocksWait[miPrev->second] = we;
         }
@@ -2986,7 +2976,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         }
     }
 
-#ifdef ENABLE_CHECKPOINTS
     else if (strCommand == NetMsgType::CHECKPOINT)
     {
          CSyncCheckpoint checkpoint;
@@ -2998,7 +2987,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                      checkpoint.RelayTo(pnode);
                  });
     }
-#endif
 
     else if (strCommand == NetMsgType::NOTFOUND) {
         // We do not care about the NOTFOUND message, but logging an Unknown Command
@@ -3513,7 +3501,6 @@ bool PeerLogicValidation::SendMessages(CNode* pto, std::atomic<bool>& interruptM
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, *most_recent_compact_block));
                             else {
                                 CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, state.fWantsCmpctWitness);
-                                cmpctblock.header.nFlags = pBestIndex->nFlags;
                                 connman->PushMessage(pto, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
                             }
                             fGotBlockFromCache = true;
