@@ -249,8 +249,12 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         int64_t nCoinValue;
         CAmount nStakeReward = tx.GetValueOut() - nValueIn;
         CAmount nCoinstakeCost = (GetMinFee(tx) < PERKB_TX_FEE) ? 0 : (GetMinFee(tx) - PERKB_TX_FEE);
-        if (nStakeReward > GetProofOfStakeReward(nCoinAge, nCoinValue) - nCoinstakeCost)
+        if (nStakeReward > GetProofOfStakeReward(nCoinAge, nCoinValue) - nCoinstakeCost) {
+	    LogPrintf("*DEBUG - nCoinAge %llu nCoinValue %llu nStakeReward %llu expected %llu oddcalc %llu\n",
+		      nCoinAge, nCoinValue, nStakeReward, GetProofOfStakeReward(nCoinAge, nCoinValue),
+                      (GetProofOfStakeReward(nCoinAge, nCoinValue) - nCoinstakeCost));
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-coinstake-too-large");
+        }
     }
     else
     {
